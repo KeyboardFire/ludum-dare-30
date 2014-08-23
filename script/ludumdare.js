@@ -39,6 +39,8 @@ function create() {
                     my = Math.floor(Math.random() * phaser.camera.height) + phaser.camera.view.top;
                 var minnow = phaser.add.sprite(mx, my, 'images_sprites_minnow');
                 phaser.physics.ninja.enable(minnow);
+                minnow.anchor.setTo(0.5, 1);
+                minnow.goingLeft = true;
                 game.enemies.push(minnow);
             }
         }],
@@ -99,7 +101,19 @@ function update() {
             py = sy;
             break;
         case 'images_sprites_minnow':
-            sprite.body.moveLeft(0.5);
+            if (sprite.goingLeft) {
+                sprite.body.moveLeft(2);
+                if (sprite.x < game.player.x && Math.random() > 0.001) {
+                    sprite.goingLeft = false;
+                    sprite.scale.x = -1;
+                }
+            } else {
+                sprite.body.moveRight(2);
+                if (sprite.x > game.player.x && Math.random() > 0.001) {
+                    sprite.goingLeft = true;
+                    sprite.scale.x = 1;
+                }
+            }
             break;
         }
     }
