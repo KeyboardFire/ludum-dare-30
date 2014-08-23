@@ -3,6 +3,8 @@ var phaser = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, crea
 function preload() {
     phaser.load.spritesheet('images_sprites_player', 'images/sprites/player.png', 64, 32);
     phaser.load.image('images_sprites_minnow', 'images/sprites/minnow.png');
+    phaser.load.image('images_sprites_shark', 'images/sprites/shark.png');
+    phaser.load.image('images_sprites_jellyfish', 'images/sprites/jellyfish.png');
 
     phaser.load.image('images_particles_splash', 'images/particles/splash.png');
 
@@ -40,21 +42,48 @@ function create() {
     phaser.camera.follow(game.player);
 
     game.enemies = [];
+    var spawn = function(type, ex, ey) {
+        var enemy = phaser.add.sprite(ex, ey, type);
+        phaser.physics.ninja.enable(enemy);
+        enemy.anchor.setTo(0.5, 1);
+        switch (type) {
+        case 'images_sprites_minnow':
+            enemy.maxHealth = enemy.health = 1;
+            break;
+        case 'images_sprites_shark':
+            enemy.maxHealth = enemy.health = 10;
+            break;
+        case 'images_sprites_jellyfish':
+            enemy.anchor.setTo(0.5, 0.25);
+            enemy.maxHealth = enemy.health = 150;
+            break;
+        }
+        game.enemies.push(enemy);
+    };
 
+    var swarm = function(type, count) {
+        for (var i = 0; i < count; ++i) {
+            var mx = phaser.camera.view.right + Math.floor(Math.random() * 256),
+                my = Math.floor(Math.random() * phaser.camera.height) + phaser.camera.view.top;
+            spawn(type, mx, my);
+        }
+    }
     game.triggers = [
         [10, function() {
-            for (var i = 0; i < 10; ++i) {
-                var mx = phaser.camera.view.right + Math.floor(Math.random() * 256),
-                    my = Math.floor(Math.random() * phaser.camera.height) + phaser.camera.view.top;
-                var minnow = phaser.add.sprite(mx, my, 'images_sprites_minnow');
-                phaser.physics.ninja.enable(minnow);
-                minnow.anchor.setTo(0.5, 1);
-                minnow.goingLeft = true;
-                game.enemies.push(minnow);
-            }
+            swarm('images_sprites_minnow', 10);
         }],
-        [20, function() {
-            console.log(20);
+        [30, function() {
+            swarm('images_sprites_shark', 2);
+        }],
+        [40, function() {
+            swarm('images_sprites_shark', 1);
+        }],
+        [50, function() {
+            swarm('images_sprites_shark', 1);
+        }],
+        [80, function() {
+            spawn('images_sprites_jellyfish');
+            swarm('images_sprites_minnow', 5);
         }]
     ];
 
@@ -113,6 +142,10 @@ function update() {
         case 1: // water
             sprite.body.gravityScale = 0.01;
             if (sprite.key == 'images_sprites_minnow') sprite.body.gravityScale = 0;
+            if (sprite.key == 'images_sprites_jellyfish') {
+                sprite.body.gravityScale = 0;
+                //sprite.body.setZeroVelocity();
+            }
             break;
         case 2: // surface of water
             game.splashEmitter.x = sx;
@@ -130,38 +163,75 @@ function update() {
         }
 
         // specific behavior
+        var fishEatFish = function(fish, dmg) { // this is a utility method for damage
+            if (phaser.physics.ninja.collide(game.player, fish)) {
+                if (game.player.frame == 1 && (game.player.scale.x > 0 ?
+                    game.player.x < fish.x - game.player.width / 2 : game.player.x > fish.x + game.player.width / 2)) { // mouth open
+                    // eat!
+                    if (--fish.health <= 0) {
+                        fish.exists = false;
+                        return true;
+                    } else {
+                        fish.alpha = fish.health / fish.maxHealth;
+                    }
+                } else {
+                    game.player.damage(dmg);
+                }
+            }
+        };
+        var trackPlayer = function(fish, spd, noVertical) { // and this one is for following the player
+            if (fish.goingLeft) {
+                fish.body.moveLeft(spd);
+                if (fish.x < game.player.x && Math.random() > 0.001) {
+                    fish.goingLeft = false;
+                    fish.scale.x = -1;
+                }
+            } else {
+                fish.body.moveRight(spd);
+                if (fish.x > game.player.x && Math.random() > 0.001) {
+                    fish.goingLeft = true;
+                    fish.scale.x = 1;
+                }
+            }
+
+            if (!noVertical) {
+                if (fish.y < game.player.y) {
+                    fish.body.moveDown(spd);
+                } else {
+                    fish.body.moveUp(spd);
+                }
+            }
+        };
         switch (sprite.key) {
         case 'images_sprites_player':
             px = sx;
             py = sy;
             break;
         case 'images_sprites_minnow':
-            // movement
-            if (sprite.goingLeft) {
-                sprite.body.moveLeft(2);
-                if (sprite.x < game.player.x && Math.random() > 0.001) {
-                    sprite.goingLeft = false;
-                    sprite.scale.x = -1;
-                }
-            } else {
-                sprite.body.moveRight(2);
-                if (sprite.x > game.player.x && Math.random() > 0.001) {
-                    sprite.goingLeft = true;
-                    sprite.scale.x = 1;
-                }
+            trackPlayer(sprite, 2, 'only horizontal');
+            if (fishEatFish(sprite, 1)) {
+                game.player.damage(game.player.health - game.player.maxHealth);
+                game.enemies[i] = null;
             }
+            break;
+        case 'images_sprites_shark':
+            trackPlayer(sprite, 5);
+            if (fishEatFish(sprite, 1)) {
+                game.enemies[i] = null;
+            }
+            break;
+        case 'images_sprites_jellyfish':
+            var vx = sprite.x - game.player.x, vy = sprite.y - game.player.y;
+            vx /= (Math.abs(vx) + Math.abs(vy));
+            vy /= (Math.abs(vx) + Math.abs(vy));
+            var spd = 4;
 
-            // attack player / get eaten
-            if (phaser.physics.ninja.collide(game.player, sprite)) {
-                if (game.player.frame == 1 && (game.player.scale.x > 0 ?
-                    game.player.x < sprite.x - game.player.width / 2 : game.player.x > sprite.x + game.player.width / 2)) { // mouth open
-                    // eat!
-                    game.player.damage(game.player.health - game.player.maxHealth);
-                    sprite.exists = false;
-                    game.enemies[i] = null;
-                } else {
-                    game.player.damage(1);
-                }
+            vx > 0 ? sprite.body.moveLeft(vx * spd) : sprite.body.moveRight(-vx * spd);
+            vy > 0 ? sprite.body.moveUp(vy * spd) : sprite.body.moveDown(-vy * spd);
+
+            if (fishEatFish(sprite, 1)) {
+                game.enemies[i] = null;
+                console.log('you passed the level!');
             }
 
             break;
