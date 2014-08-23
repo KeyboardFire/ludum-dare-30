@@ -1,9 +1,15 @@
 var phaser = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() {
+    phaser.load.tilemap('tilemaps_water', 'tilemaps/water.json', null, Phaser.Tilemap.TILED_JSON);
+    phaser.load.image('images_tiles_water', 'images/tiles/water.png');
 }
 
 function create() {
+    var map = phaser.add.tilemap('tilemaps_water');
+    map.addTilesetImage('images_tiles_water');
+    var layer = map.createLayer('tilemaps_water_layer');
+    layer.resizeWorld();
 }
 
 function update() {
