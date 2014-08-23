@@ -6,6 +6,8 @@ function preload() {
 
     phaser.load.image('images_particles_splash', 'images/particles/splash.png');
 
+    phaser.load.audio('audio_splash', ['audio/splash.mp3', 'audio/splash.ogg']);
+
     phaser.load.tilemap('tilemaps_water', 'tilemaps/water.json', null, Phaser.Tilemap.TILED_JSON);
     phaser.load.image('images_tiles_water', 'images/tiles/water.png');
 }
@@ -49,6 +51,9 @@ function create() {
         }]
     ];
 
+    game.audio = {};
+    game.audio.splash = phaser.add.audio('audio_splash');
+
     game.cursors = phaser.input.keyboard.createCursorKeys();
 }
 
@@ -88,6 +93,11 @@ function update() {
             game.splashEmitter.x = sx;
             game.splashEmitter.y = sy;
             game.splashEmitter.start(true, 1000, null, 10);
+
+            if (phaser.camera.view.contains(sx, sy)) {
+                // this happens many times in a row, so don't go crazy with splash noises
+                if (!game.audio.splash.isPlaying) game.audio.splash.play();
+            }
             break;
         case 3: // air
             sprite.body.gravityScale = 0.35;
