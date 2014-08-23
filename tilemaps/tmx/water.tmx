@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="100" height="100" tilewidth="32" tileheight="32">
+<map version="1.0" orientation="orthogonal" width="100" height="25" tilewidth="32" tileheight="32">
  <tileset firstgid="1" name="images_tiles_water" tilewidth="32" tileheight="32">
-  <image source="../../images/tiles/water.png" width="64" height="32"/>
+  <image source="../../images/tiles/water.png" width="96" height="32"/>
  </tileset>
- <layer name="tilemaps_water_layer" width="100" height="100">
+ <layer name="tilemaps_water_layer" width="100" height="25">
   <data encoding="base64" compression="zlib">
-   eJzt0TEKACAMA8Da/z9aXLM5iKBXuKkEStNV1WF3VmZwTPaTHeXu9r0/8n8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeMcEIXknFA==
+   eJzt1TkSgCAQRcEB739ncwpkSZzSDjqcH/ACakTUxrWpvT/dedr6i9Ixe9uVjdK5W2kx2mLcaPdOi1xmTbTI00SLPE20eN/pPwQAAAAAAADwNTeMqQqn
   </data>
  </layer>
 </map>
