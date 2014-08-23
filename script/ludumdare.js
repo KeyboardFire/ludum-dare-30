@@ -1,7 +1,7 @@
 var phaser = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() {
-    phaser.load.image('images_sprites_player', 'images/sprites/player.png');
+    phaser.load.spritesheet('images_sprites_player', 'images/sprites/player.png', 64, 32);
     phaser.load.image('images_sprites_minnow', 'images/sprites/minnow.png');
 
     phaser.load.image('images_particles_splash', 'images/particles/splash.png');
@@ -28,8 +28,15 @@ function create() {
 
     game.player = phaser.add.sprite(0, 0, 'images_sprites_player');
     phaser.physics.ninja.enable(game.player);
+    game.player.anchor.setTo(0.5, 1);
     game.player.body.gravityScale = 0.01;
     game.player.speed = 5;
+    game.player.maxHealth = game.player.health = 100;
+    game.player.damage = function(amount) {
+        game.player.health -= amount;
+        if (game.player.health <= 0) console.log('You are dead');
+        game.player.alpha = game.player.health / game.player.maxHealth;
+    };
     phaser.camera.follow(game.player);
 
     game.enemies = [];
@@ -61,9 +68,11 @@ function update() {
     // cursor movement
     if (game.cursors.left.isDown) {
         game.player.body.moveLeft(game.player.speed);
+        game.player.scale.x = -1;
     }
     if (game.cursors.right.isDown) {
         game.player.body.moveRight(game.player.speed);
+        game.player.scale.x = 1;
     }
     if (game.cursors.up.isDown) {
         game.player.body.moveUp(game.player.speed);
@@ -72,11 +81,27 @@ function update() {
         game.player.body.moveDown(game.player.speed);
     }
 
+    // eating
+    if (phaser.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+        if (game.player.mouthTime < 0) ++game.player.mouthTime;
+        else {
+            game.player.frame = 1;
+            ++game.player.mouthTime;
+            if (game.player.mouthTime > 50) {
+                game.player.mouthTime = -50;
+                game.player.frame = 0;
+            }
+        }
+    } else {
+        game.player.frame = 0;
+        game.player.mouthTime = 0;
+    }
+
     // enemy / player behavior
     var px, py;
     for (var i = 0; i <= game.enemies.length; ++i) {
         var sprite = (i == game.enemies.length ? game.player : game.enemies[i]);
-        var sx = sprite.x + sprite.width / 2, sy = sprite.y + sprite.height / 2;
+        var sx = sprite.x, sy = sprite.y;
         var tx = sx / game.map.layer.data[0][0].width, ty = sy / game.map.layer.data[0][0].height;
         tx = Math.min(Math.max(Math.round(tx), 0), game.map.layer.width - 1);
         ty = Math.min(Math.max(Math.round(ty), 0), game.map.layer.height - 1);
@@ -111,6 +136,7 @@ function update() {
             py = sy;
             break;
         case 'images_sprites_minnow':
+            // movement
             if (sprite.goingLeft) {
                 sprite.body.moveLeft(2);
                 if (sprite.x < game.player.x && Math.random() > 0.001) {
@@ -124,7 +150,27 @@ function update() {
                     sprite.scale.x = 1;
                 }
             }
+
+            // attack player / get eaten
+            if (phaser.physics.ninja.collide(game.player, sprite)) {
+                if (game.player.frame == 1 && (game.player.scale.x > 0 ?
+                    game.player.x < sprite.x - game.player.width / 2 : game.player.x > sprite.x + game.player.width / 2)) { // mouth open
+                    // eat!
+                    game.player.damage(game.player.health - game.player.maxHealth);
+                    sprite.exists = false;
+                    game.enemies[i] = null;
+                } else {
+                    game.player.damage(1);
+                }
+            }
+
             break;
+        }
+    }
+    for (var i = 0; i < game.enemies.length; ++i) {
+        if (game.enemies[i] == null) {
+            game.enemies.splice(i--, 1);
+            continue;
         }
     }
 
