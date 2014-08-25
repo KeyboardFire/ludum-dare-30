@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="100" height="25" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="images_tiles_fire" tilewidth="32" tileheight="32">
+  <image source="../../images/tiles/fire.png" width="288" height="32"/>
+ </tileset>
+ <layer name="tilemaps_fire_layer" width="100" height="25">
+  <data encoding="base64" compression="zlib">
+   eJztmtuOgzAMRFMKlP7/D69WaiRk+TK+BPLAw0hbGmxnTkyy7B6ttdejaXQUxdgnmMtsWgP+PjzG6f3zxuOxd7zGQ4t1EN3t1RWic0Y8qOKxCrm89cwiqeZd+Y7OLcMj4w9S3wxM0GeqVm+EBxd7e3hAPKx6o/2B+p3xBvUWqX83YlzBw1Mnus68PKT7tBr7d5+GnSHoOE4rEIfWRPcser7cfrn7Z+v8Wc2D8ww9c2kcPfmi8/T0KXI/5YvkGcUj8jyyao96KI1fhOvSPneW1WvW2uHqRmON3j8y6xiNy6k/yzlvq+uM9H8FDytvdp50TUc4UB7n3Oi9GR5Wv0R59L2qq6I/rDppLRkeXN5Xw/Z+bs3TnznOUR7n8RX7Bz1neLice8J6J9L97J5a65Ljge4NCygp76LMWeOG8NiEnJH+iKzrKkmeVPQdjcf9LmL59y96xtbmwuUdyaOShdU/VTz6Z43HiDmO5uFZx/TZwD0rNE8qeNDYHI+FyX00+WxOr0vjrB68kkU2fhUPpD8kSWPpdSRm5G8iku8W+xl5e/aPrLzvK0ezqO7RETxGraFKHh9Bb+M+i510Fjm/17NyV/Go4puVx1fEY0vo3ocqO380ZnS+GWnnmorakL68m4c07nsDj+d/QObXH2ayI+o=
+  </data>
+ </layer>
+</map>
